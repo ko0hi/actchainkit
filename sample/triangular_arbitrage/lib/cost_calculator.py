@@ -5,19 +5,14 @@ import httpx
 import numpy as np
 import pandas as pd
 
-
-class CostCalculatorReceiveEventData(TypedDict):
-    # response data by https://api.binance.com/api/v3/ticker/bookTicker
-    data: dict
+from .bookticker_poler import BooktickerData
 
 
 class CostCalculatorSendEventData(TypedDict):
     df_arb: pd.DataFrame
 
 
-class CostCalculator(
-    actchain.Function[CostCalculatorReceiveEventData, CostCalculatorSendEventData]
-):
+class CostCalculator(actchain.Function[BooktickerData, CostCalculatorSendEventData]):
     def __init__(self, swap_amount: float = 100):
         super(CostCalculator, self).__init__()
         self._swap_amount = swap_amount
@@ -34,18 +29,20 @@ class CostCalculator(
         self._second_symbols: list[dict] | None = None
         self._third_symbols: list[dict] | None = None
 
-    async def handle(self, event: actchain.Event) -> CostCalculatorSendEventData:
+    async def handle(
+        self, event: actchain.Event[BooktickerData]
+    ) -> CostCalculatorSendEventData:
         return {"df_arb": await self._compute(event.data["data"])}
 
-    async def _compute(self, booktickers: dict) -> pd.DataFrame:
+    async def _compute(self, booktickers: BooktickerData) -> pd.DataFrame:
         if self._exchange_info is None:
             await self._initialize()
 
-        booktickers = {d["symbol"]: d for d in booktickers}
+        booktickers_dict = {d["symbol"]: d for d in booktickers}
 
-        cost_1st = self._compute_first_swap_costs(booktickers)
-        cost_2nd = self._compute_second_swap_costs(booktickers)
-        cost_3rd = self._compute_third_swap_costs(booktickers)
+        cost_1st = self._compute_first_swap_costs(booktickers_dict)
+        cost_2nd = self._compute_second_swap_costs(booktickers_dict)
+        cost_3rd = self._compute_third_swap_costs(booktickers_dict)
 
         costs = self._compute_costs(cost_1st, cost_2nd, cost_3rd)
 
