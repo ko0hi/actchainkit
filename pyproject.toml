@@ -27,6 +27,11 @@ ruff = "^0.1.5"
 pre-commit = "^3.5.0"
 
 
+
+[tool.poetry.group.test.dependencies]
+ccxt = "^4.1.67"
+httpx = "^0.25.2"
+
 [tool.mypy]
 ignore_missing_imports = true
 check_untyped_defs = true
