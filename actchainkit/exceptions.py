@@ -1,8 +1,3 @@
-import better_exceptions
-
-better_exceptions.hook()
-
-
 class ActchainKitError(Exception):
     """Base class for exceptions in actchain."""
 
