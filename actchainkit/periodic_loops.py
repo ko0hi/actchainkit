@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, AsyncGenerator, Awaitable, Callable, Generic, TypeVar, TypedDict
+from typing import AsyncGenerator, Awaitable, Callable, Generic, TypeVar, TypedDict
 
 import actchain
 
@@ -33,12 +33,15 @@ class PeriodicLoop(Generic[T], actchain.Loop[T]):
             return self._fnc()  # type: ignore
 
 
-class HttpRequestPeriodicLoopData(TypedDict):
-    data: Any
+D = TypeVar("D")
+
+
+class HttpRequestPeriodicLoopData(Generic[D], TypedDict):
+    data: D
     resp: httpx.Response
 
 
-class HttpRequestPeriodicLoop(PeriodicLoop[HttpRequestPeriodicLoopData]):
+class HttpRequestPeriodicLoop(Generic[D], PeriodicLoop[HttpRequestPeriodicLoopData[D]]):
     def __init__(
         self,
         url: str,
