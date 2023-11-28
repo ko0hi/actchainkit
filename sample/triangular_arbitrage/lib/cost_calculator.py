@@ -5,7 +5,7 @@ import httpx
 import numpy as np
 import pandas as pd
 
-from .bookticker_poler import BooktickerData
+from .bookticker_poler import BooktickerData, Bookticker
 
 
 class CostCalculatorSendEventData(TypedDict):
@@ -34,7 +34,7 @@ class CostCalculator(actchain.Function[BooktickerData, CostCalculatorSendEventDa
     ) -> CostCalculatorSendEventData:
         return {"df_arb": await self._compute(event.data["data"])}
 
-    async def _compute(self, booktickers: BooktickerData) -> pd.DataFrame:
+    async def _compute(self, booktickers: list[Bookticker]) -> pd.DataFrame:
         if self._exchange_info is None:
             await self._initialize()
 
