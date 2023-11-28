@@ -6,6 +6,7 @@ from actchainkit.ccxt_orderbook_loop import CcxtOrderbookLoop
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip(reason="This test is for manual testing")
 async def test_run_realtime() -> None:
     loop = CcxtOrderbookLoop("binance", "BTC/USDT")
     n = 0
@@ -18,6 +19,7 @@ async def test_run_realtime() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip(reason="This test is for manual testing")
 async def test_run_throttling() -> None:
     loop = CcxtOrderbookLoop("binance", "BTC/USDT", throttling=1)
     n = 0
