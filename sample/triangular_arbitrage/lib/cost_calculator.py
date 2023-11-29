@@ -45,11 +45,11 @@ class CostCalculator(actchain.Function[BooktickerData, CostCalculatorSendEventDa
         cost_3rd = self._compute_third_swap_costs(booktickers_dict)
 
         costs = self._compute_costs(cost_1st, cost_2nd, cost_3rd)
-
         return (
             costs.reset_index()
-            .melt(id_vars="index", var_name="second_asset")
-            .rename(columns={"index": "first_asset", "value": "result"})
+            .melt(id_vars="base", var_name="second_asset")
+            .rename(columns={"base": "first_asset", "value": "result"})
+            .pipe(lambda _df: _df[_df["first_asset"] != _df["second_asset"]])
             .assign(
                 has_arb=lambda _df: _df["result"] > self._swap_amount,
                 expected_profit=lambda _df: _df["result"] / self._swap_amount - 1,
@@ -62,6 +62,8 @@ class CostCalculator(actchain.Function[BooktickerData, CostCalculatorSendEventDa
         result_1st = (self._swap_amount / cost_1st).replace(np.inf, 0)
         result_2nd = (result_1st / cost_2nd.T).fillna(0).replace(np.inf, 0)
         result_3rd = (result_2nd.T * cost_3rd).fillna(0).replace(np.inf, 0)
+        result_3rd.index.name = "base"
+        result_3rd.columns.name = "quote"
         return result_3rd
 
     def _compute_first_swap_costs(self, booktickers: dict) -> pd.Series:
@@ -100,17 +102,20 @@ class CostCalculator(actchain.Function[BooktickerData, CostCalculatorSendEventDa
         )
 
     async def _initialize(self) -> None:
-        await self._fetch_exchange_info()
-        self._set_symbols()
+        await self._set_exchange_info()
+        await self._set_symbols()
 
-    async def _fetch_exchange_info(self) -> None:
+    async def _fetch_exchange_info(self) -> dict:
         async with httpx.AsyncClient() as client:
             resp = await client.get("https://api.binance.com/api/v3/exchangeInfo")
             if resp.status_code != 200:
                 raise RuntimeError(f"Failed to fetch exchange info: {resp}")
-            self._exchange_info = resp.json()
+            return resp.json()
 
-    def _set_symbols(self) -> None:
+    async def _set_exchange_info(self) -> None:
+        self._exchange_info = await self._fetch_exchange_info()
+
+    async def _set_symbols(self) -> None:
         assert self._exchange_info, "Exchange info is not initialized"
         self._symbols = self._exchange_info["symbols"]
         assert self._symbols is not None
