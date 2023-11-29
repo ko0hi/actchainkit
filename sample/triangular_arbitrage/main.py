@@ -7,14 +7,14 @@ from lib import BooktickerPolingLoop, CostCalculator, OrderCommander, OrderExecu
 async def main() -> None:
     flow_feature_extract = (
         actchain.Flow("triangular_arbitrage")
-        .add(BooktickerPolingLoop().as_chain("bookticker"))
+        .add(BooktickerPolingLoop(interval=1).as_chain("bookticker"))
         .add(CostCalculator().as_chain("cost"))
     )
 
     flow_order = (
         actchain.Flow("triangular_arbitrage")
         .add(flow_feature_extract)
-        .add(OrderCommander().as_chain("order"))
+        .add(OrderCommander(order_profit=0.01 / 100).as_chain("order"))
         .add(
             actchain.PassThroughChain(
                 "print_order_command",
