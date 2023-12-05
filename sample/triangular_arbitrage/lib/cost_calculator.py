@@ -5,7 +5,7 @@ import httpx
 import numpy as np
 import pandas as pd
 
-from .bookticker_poler import BooktickerData, Bookticker
+from .bookticker_poler import Bookticker, BooktickerData
 
 
 class CostCalculatorSendEventData(TypedDict):
