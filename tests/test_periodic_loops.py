@@ -39,7 +39,9 @@ class TestPeriodicLoop:
 class TestHttpRequestPeriodicLoop:
     @pytest.mark.asyncio
     @pytest.mark.skip(reason="This test is for manual testing")
-    async def test_calls_run_periodically(self, mocker: pytest_mock.MockerFixture) -> None:
+    async def test_calls_run_periodically(
+        self, mocker: pytest_mock.MockerFixture
+    ) -> None:
         periodic_loop = HttpRequestPeriodicLoop[dict]("https://www.google.com/", 1)
         spy = mocker.spy(periodic_loop, "_run")
 
